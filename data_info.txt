@@ -1,0 +1,15 @@
+0	Az_02.png
+1	Az_02.png
+2	Bronz_01.png
+3	Bronz_02.png
+4	KCL_01.png
+5	Spinel_01.png
+6	Spinel_02.png
+7	Spinel_03.png
+8	Spinel_04.png
+9	Spinel_05.png
+10	Spinel_06.png
+11	Spinel_07r.png
+12	Spinel_08.png
+13	Zinok_01.png
+14	Zinok_02.png

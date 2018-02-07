@@ -52,7 +52,7 @@ class myAugmentation(object):
 		imgtype = self.img_type
 		path_aug_merge = self.aug_merge_path
 		if len(trains) != len(labels) or len(trains) == 0 or len(trains) == 0:
-			print "trains can't match labels"
+			print("trains can't match labels")
 			return 0
 		for i in range(len(trains)):
 			img_t = load_img(path_train+"/"+str(i)+"."+imgtype)
@@ -135,7 +135,7 @@ class myAugmentation(object):
 
 class dataProcess(object):
 
-	def __init__(self, out_rows, out_cols, data_path = "../deform/train", label_path = "../deform/label", test_path = "../test", npy_path = "../npydata", img_type = "tif"):
+	def __init__(self, out_rows, out_cols, data_path = "/data/train/image", label_path = "/data/train/label", test_path = "/data/test", npy_path = "/data/npydata", img_type = "tif"):
 
 		"""
 		
@@ -154,6 +154,7 @@ class dataProcess(object):
 		print('-'*30)
 		print('Creating training images...')
 		print('-'*30)
+      print('Hello')
 		imgs = glob.glob(self.data_path+"/*."+self.img_type)
 		print(len(imgs))
 		imgdatas = np.ndarray((len(imgs),self.out_rows,self.out_cols,1), dtype=np.uint8)
