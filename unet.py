@@ -10,17 +10,27 @@ from keras import backend as keras
 from data import *
 
 
-class myUnet(object):
+class MyUnet(object):
 
     def __init__(self, img_rows=512, img_cols=512):
         self.img_rows = img_rows
         self.img_cols = img_cols
 
-    def load_data(self):
-        mydata = dataProcess(self.img_rows, self.img_cols)
-        imgs_train, imgs_mask_train = mydata.load_train_data()
-        # imgs_test = mydata.load_test_data()
-        return imgs_train, imgs_mask_train  # , imgs_test
+    # def load_training_data(self, data='imgs_train', mask='imgs_mask_train'):
+    #     """
+    #     function to load npy training and mask data
+    #     :param data: string name of the data file without filetype
+    #     :param mask: string name of the mask file without filetype
+    #     :return: data and mask variables
+    #     """
+    #     my_train_data = DataProcess(self.img_rows, self.img_cols)
+    #     imgs_train, imgs_mask_train = my_train_data.load_train_data(data, mask)
+    #     return imgs_train, imgs_mask_train
+
+    # def load_predict_data(self):
+    #     my_predict_data = DataProcess(self.img_rows, self.img_cols)
+    #     imgs_test = my_predict_data.load_test_data()
+    #     return imgs_test
 
     def get_unet(self):
         inputs = Input((self.img_rows, self.img_cols, 1))
@@ -114,25 +124,25 @@ class myUnet(object):
 
         up6 = Conv2D(512, 2, activation='relu', padding='same',
                      kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(drop5))
-        merge6 = concatenate([drop4, up6], 3)  # merge([drop4, up6], mode='concat', concat_axis=3)
+        merge6 = concatenate([drop4, up6], 3)
         conv6 = Conv2D(512, 3, activation='relu', padding='same', kernel_initializer='he_normal')(merge6)
         conv6 = Conv2D(512, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv6)
 
         up7 = Conv2D(256, 2, activation='relu', padding='same', kernel_initializer='he_normal')(
                      UpSampling2D(size=(2, 2))(conv6))
-        merge7 = concatenate([conv3, up7], 3)  # merge([conv3, up7], mode='concat', concat_axis=3)
+        merge7 = concatenate([conv3, up7], 3)
         conv7 = Conv2D(256, 3, activation='relu', padding='same', kernel_initializer='he_normal')(merge7)
         conv7 = Conv2D(256, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv7)
 
         up8 = Conv2D(128, 2, activation='relu', padding='same', kernel_initializer='he_normal')(
                      UpSampling2D(size=(2, 2))(conv7))
-        merge8 = concatenate([conv2, up8], 3)  # merge([conv2, up8], mode='concat', concat_axis=3)
+        merge8 = concatenate([conv2, up8], 3)
         conv8 = Conv2D(128, 3, activation='relu', padding='same', kernel_initializer='he_normal')(merge8)
         conv8 = Conv2D(128, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv8)
 
         up9 = Conv2D(64, 2, activation='relu', padding='same', kernel_initializer='he_normal')(
                      UpSampling2D(size=(2, 2))(conv8))
-        merge9 = concatenate([conv1, up9], 3)  # merge([conv1, up9], mode='concat', concat_axis=3)
+        merge9 = concatenate([conv1, up9], 3)
 
         conv9 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(merge9)
         conv9 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
@@ -146,30 +156,74 @@ class myUnet(object):
 
         return model
 
-    def train(self):
-        print("loading data")
-        imgs_train, imgs_mask_train = self.load_data()
-        print("loading data done")
-        model = self.get_unet()
-        print("got unet")
+    def train(self, epoch_iteration=10, name='unet'):
+        model_name = name+'.hdf5'
 
-        model_checkpoint = ModelCheckpoint('unet.hdf5', monitor='loss', verbose=1, save_best_only=True)
+        print("loading data")
+        my_train_data = DataProcess(self.img_rows, self.img_cols)
+        imgs_train, imgs_mask_train = my_train_data.load_train_data(data='imgs_train', mask='imgs_mask_train')
+        print("loading data done")
+
+        model = self.get_unet()
+        print("got U-net")
+
+        model_checkpoint = ModelCheckpoint(model_name, monitor='loss', verbose=1, save_best_only=True)
         print('Fitting model...')
         csv_logger = CSVLogger('training.log')
-        model.fit(imgs_train, imgs_mask_train, batch_size=4, epochs=10, verbose=1, validation_split=0.2, shuffle=True,
-                  callbacks=[model_checkpoint, csv_logger])
+        model.fit(imgs_train, imgs_mask_train, batch_size=4, epochs=epoch_iteration, verbose=1, validation_split=0.2,
+                  shuffle=True, callbacks=[model_checkpoint, csv_logger])
+
+    def predict(self, name='unet'):
+        """
+        Function to predict test data with appropriate model
+        :param name: string name without '.hdf5'
+        :return: .npy file with masks and jpgs
+        """
+        model_name = name+'.hdf5'
+        print("loading model "+model_name)
+        model = self.get_unet()
+        model.load_weights(model_name)
+        print("loading model done")
+
+        print("loading data")
+        my_predict_data = DataProcess(self.img_rows, self.img_cols)
+        imgs_test = my_predict_data.load_test_data(test='imgs_6_test')
+        print("loading data done")
+
+        print("prediction starts")
+        imgs_mask_test = model.predict(imgs_test, batch_size=1, verbose=1)
+        print("prediction done")
+
+        print("saving predicted data")
+        np.save('imgs_6mask_test.npy', imgs_mask_test)
+
+        print("converting mask data to jpg")
+        myunet.save_img()
 
     @staticmethod
     def save_img():
         print("array to image")
-        imgs = np.load('results/imgs_mask_test.npy')
+        imgs = np.load('imgs_mask_test.npy')
         for i in range(imgs.shape[0]):
             img = imgs[i]
             img = array_to_img(img)
             img.save("results/%d.jpg" % i)
 
 
+def continous_training(run=1):
+    """
+    Aprox iteration on Hedvika PC for RDZ 10 000 is 6h 40min
+    :param run: number od runs (int)
+    :return: trained models with log file
+    """
+    myunet = MyUnet()
+    for i in range(run):
+        model_name = 'unet'+str(i)
+        myunet.train(10, model_name)
+
+
 if __name__ == '__main__':
-    myunet = myUnet()
-    myunet.train()
+    myunet = MyUnet()
+    # myunet.predict('unet')
+    myunet.train(1, 'unet')
     # myunet.save_img()

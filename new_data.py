@@ -4,9 +4,11 @@ import os
 import glob
 import cv2
 
-class dataProcess(object):
+
+class DataProcess(object):
     
-    def __init__(self, out_rows, out_cols, data_path = "./data/train", label_path = "./data/label", test_path = "./data/test", npy_path = "./npydata", img_type = "tif"):
+    def __init__(self, out_rows, out_cols, data_path="./data/trainme", label_path="./data/labelme",
+                 test_path="./data/testme", npy_path="./npydata", img_type="png"):
 
         """
         """
@@ -26,22 +28,22 @@ class dataProcess(object):
         print('-'*30)
         imgs = glob.glob(self.data_path+"/*."+self.img_type)
         print(len(imgs))
-        imgdatas = np.ndarray((len(imgs),self.out_rows,self.out_cols,1), dtype=np.uint8)
-        imglabels = np.ndarray((len(imgs),self.out_rows,self.out_cols,1), dtype=np.uint8)
+        imgdatas = np.ndarray((len(imgs), self.out_rows, self.out_cols, 1), dtype=np.uint8)
+        imglabels = np.ndarray((len(imgs), self.out_rows, self.out_cols, 1), dtype=np.uint8)
         for imgname in imgs:
-            #windows way
+            # windows way
             midname = imgname[imgname.rindex("\\")+1:]
             
-            #linux way - 
-            #midname = imgname[imgname.rindex("/")+1:]
-            img = load_img(self.data_path + "/" + midname,grayscale = True)
-            label = load_img(self.label_path + "/" + midname,grayscale = True)
+            # linux way -
+            # midname = imgname[imgname.rindex("/")+1:]
+            img = load_img(self.data_path + "/" + midname, grayscale=True)
+            label = load_img(self.label_path + "/" + midname, grayscale=True)
             img = img_to_array(img)
             label = img_to_array(label)
-            #img = cv2.imread(self.data_path + "/" + midname,cv2.IMREAD_GRAYSCALE)
-            #label = cv2.imread(self.label_path + "/" + midname,cv2.IMREAD_GRAYSCALE)
-            #img = np.array([img])
-            #label = np.array([label])
+            # img = cv2.imread(self.data_path + "/" + midname,cv2.IMREAD_GRAYSCALE)
+            # label = cv2.imread(self.label_path + "/" + midname,cv2.IMREAD_GRAYSCALE)
+            # img = np.array([img])
+            # label = np.array([label])
             imgdatas[i] = img
             imglabels[i] = label
             if i % 100 == 0:
@@ -59,17 +61,17 @@ class dataProcess(object):
         print('-'*30)
         imgs = glob.glob(self.test_path+"/*."+self.img_type)
         print(len(imgs))
-        imgdatas = np.ndarray((len(imgs),self.out_rows,self.out_cols,1), dtype=np.uint8)
+        imgdatas = np.ndarray((len(imgs), self.out_rows, self.out_cols, 1), dtype=np.uint8)
         for imgname in imgs:
-            #windows way
+            # windows way
             midname = imgname[imgname.rindex("\\")+1:]
             
-            #linux way - 
-            #midname = imgname[imgname.rindex("/")+1:]
-            img = load_img(self.test_path + "/" + midname,grayscale = True)
+            # linux way -
+            # midname = imgname[imgname.rindex("/")+1:]
+            img = load_img(self.test_path + "/" + midname, grayscale=True)
             img = img_to_array(img)
-            #img = cv2.imread(self.test_path + "/" + midname,cv2.IMREAD_GRAYSCALE)
-            #img = np.array([img])
+            # img = cv2.imread(self.test_path + "/" + midname,cv2.IMREAD_GRAYSCALE)
+            # img = np.array([img])
             imgdatas[i] = img
             i += 1
             print('loading done')
@@ -88,7 +90,7 @@ class dataProcess(object):
         imgs_mask_train /= 255
         imgs_mask_train[imgs_mask_train > 0.5] = 1
         imgs_mask_train[imgs_mask_train <= 0.5] = 0
-        return imgs_train,imgs_mask_train
+        return imgs_train, imgs_mask_train
     
     def load_test_data(self):
         print('-'*30)
@@ -101,7 +103,6 @@ class dataProcess(object):
     
             
 if __name__ == "__main__":
-    mydata = dataProcess(512, 512)
+    mydata = DataProcess(512, 512)
     mydata.create_train_data()
-    mydata.create_test_data()
-
+    # mydata.create_test_data()

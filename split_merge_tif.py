@@ -11,7 +11,7 @@ def split_img():
 	'''
 
 	for t in dirtype:
-		imgdir = TIFF3D.open(t + "-volume.tif")
+		imgdir = TIFF3D.open(t + "/" + t + "-volume.tif")
 		imgarr = imgdir.read_image()
 		for i in range(imgarr.shape[0]):
 			imgname = t + "/" + str(i) + ".tif"
@@ -34,7 +34,7 @@ def merge_img():
 
 if __name__ == "__main__":
 
-	merge_img()
+	split_img()
 
 
 
