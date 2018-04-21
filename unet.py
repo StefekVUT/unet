@@ -1,6 +1,7 @@
 import os
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import numpy as np
+import gc
 from keras.models import *
 from keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, Dropout, Cropping2D
 from keras.layers.merge import concatenate
@@ -16,21 +17,18 @@ class MyUnet(object):
         self.img_rows = img_rows
         self.img_cols = img_cols
 
-    # def load_training_data(self, data='imgs_train', mask='imgs_mask_train'):
-    #     """
-    #     function to load npy training and mask data
-    #     :param data: string name of the data file without filetype
-    #     :param mask: string name of the mask file without filetype
-    #     :return: data and mask variables
-    #     """
-    #     my_train_data = DataProcess(self.img_rows, self.img_cols)
-    #     imgs_train, imgs_mask_train = my_train_data.load_train_data(data, mask)
-    #     return imgs_train, imgs_mask_train
+    def __del__(self):
+        print('deleted')
 
-    # def load_predict_data(self):
-    #     my_predict_data = DataProcess(self.img_rows, self.img_cols)
-    #     imgs_test = my_predict_data.load_test_data()
-    #     return imgs_test
+    def load_training_data(self):
+        mydata = DataProcess(self.img_rows, self.img_cols)
+        imgs_train, imgs_mask_train = mydata.load_train_data()
+        return imgs_train, imgs_mask_train
+
+    def load_predict_data(self):
+        mydata = DataProcess(self.img_rows, self.img_cols)
+        imgs_test = mydata.load_test_data()
+        return imgs_test
 
     def get_unet(self):
         inputs = Input((self.img_rows, self.img_cols, 1))
@@ -160,18 +158,20 @@ class MyUnet(object):
         model_name = name+'.hdf5'
 
         print("loading data")
-        my_train_data = DataProcess(self.img_rows, self.img_cols)
-        imgs_train, imgs_mask_train = my_train_data.load_train_data(data='imgs_train', mask='imgs_mask_train')
+        imgs_train, imgs_mask_train = self.load_training_data()
         print("loading data done")
-
         model = self.get_unet()
         print("got U-net")
 
         model_checkpoint = ModelCheckpoint(model_name, monitor='loss', verbose=1, save_best_only=True)
         print('Fitting model...')
-        csv_logger = CSVLogger('training.log')
+        csv_logger = CSVLogger('training.log', append=True)
         model.fit(imgs_train, imgs_mask_train, batch_size=4, epochs=epoch_iteration, verbose=1, validation_split=0.2,
                   shuffle=True, callbacks=[model_checkpoint, csv_logger])
+
+        #possibly do not need
+        del model
+        gc.collect()
 
     def predict(self, name='unet'):
         """
@@ -180,14 +180,13 @@ class MyUnet(object):
         :return: .npy file with masks and jpgs
         """
         model_name = name+'.hdf5'
-        print("loading model "+model_name)
+        print("loading model"+model_name)
         model = self.get_unet()
         model.load_weights(model_name)
         print("loading model done")
 
         print("loading data")
-        my_predict_data = DataProcess(self.img_rows, self.img_cols)
-        imgs_test = my_predict_data.load_test_data(test='imgs_6_test')
+        imgs_test = self.load_predict_data()
         print("loading data done")
 
         print("prediction starts")
@@ -195,7 +194,7 @@ class MyUnet(object):
         print("prediction done")
 
         print("saving predicted data")
-        np.save('imgs_6mask_test.npy', imgs_mask_test)
+        np.save('imgs_mask_test.npy', imgs_mask_test)
 
         print("converting mask data to jpg")
         myunet.save_img()
@@ -223,7 +222,27 @@ def continous_training(run=1):
 
 
 if __name__ == '__main__':
-    myunet = MyUnet()
+    # myunet = MyUnet()
     # myunet.predict('unet')
-    myunet.train(1, 'unet')
+    gc.enable()
+
+    myunet = MyUnet()    
+    myunet.train(10, '5000unet5iter10')
+    keras.clear_session()
+
+    myunet = MyUnet()    
+    myunet.train(10, '5000unet6iter10')
+    keras.clear_session()
+
+    myunet = MyUnet()    
+    myunet.train(10, '5000unet7iter10')
+    keras.clear_session()
+
+    myunet = MyUnet()    
+    myunet.train(10, '5000unet8iter10')
+    keras.clear_session()
+
+    myunet = MyUnet()    
+    myunet.train(10, '5000unet9iter10')
+    keras.clear_session()
     # myunet.save_img()

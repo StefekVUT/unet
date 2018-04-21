@@ -8,14 +8,18 @@ The architecture was inspired by [U-Net: Convolutional Networks for Biomedical I
 
 ### Data
 
-[Provided data](http://brainiac2.mit.edu/isbi_challenge/) you can download the train and test data from this server.
-you can also find data in the data folder.
+TEM images, 200 kV, imaging modes: bright/dark field, STEM, magnification range 2k-5000kx.
+ The initial non-augmented training dataset consists of images and appropriate binary masks of different elements
+ and different samples(Au, C, Zn, Bronz, KCl, Spinel, Az, Grid).
 
 ### Pre-processing
 
-The images are 3-D volume tiff, you should transfer the stacks into images first.
-The data for training contains 30 512*512 images, which are far not enough to feed a deep learning neural network.
-To do data augumentation, an image deformation method was used, which was implemented in C++ using opencv.
+
+The data for training contains 100 512*512 images, which are far not enough to feed a deep learning neural network.
+Prediction data contains 6 512*512 images.
+To do data augumentation, an image augmentation method was used, which was implemented with the [Augmentor tool](https://github.com/StefekVUT/Augmentor)
+All images were firstly rotated by 90, 180 and 270 degrees. Then Rotation, Zoom, Distort functions from Augmentor tool were applied.
+Current best results were achieved when training dataset contained 10 000 images.
 
 ### Model
 
@@ -30,7 +34,7 @@ makes sure that mask pixels are in \[0, 1\] range.
 
 The model is trained for 10 epochs.
 
-After 10 epochs, calculated accuracy is about 0.97.
+After 10 epochs, calculated accuracy is about FILL LATER
 
 Loss function for the training is basically just a binary crossentropy
 
@@ -38,13 +42,14 @@ Loss function for the training is basically just a binary crossentropy
 
 ## How to use
 
+FILL LATER
+
 ### Dependencies
 
 This tutorial depends on the following libraries:
 
 * Tensorflow
 * Keras >= 1.0
-* libtiff(optional)
 
 Also, this code should be compatible with Python versions 2.7-3.5.
 
@@ -54,9 +59,7 @@ First transfer 3D volume tiff to 30 512*512 images.
 
 To feed the unet, data augmentation is necessary.
 
-An [image deformation](http://faculty.cs.tamu.edu/schaefer/research/mls.pdf) method is used, the code is 
 
-availabel in this [repository](https://github.com/cxcxcxcx/imgwarp-opencv).
 
 
 
