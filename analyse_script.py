@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import f1_score
 from sklearn.metrics.cluster import adjusted_rand_score
+from tqdm import tqdm
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
@@ -94,7 +95,6 @@ def plot_curve_PRC(precision_df, recal_df, path):
     
     for name in precision_df.columns:
         plt.plot(recal_df[name], precision_df[name])
-        plt.hold(True)
 
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel('Recall')
@@ -103,16 +103,15 @@ def plot_curve_PRC(precision_df, recal_df, path):
     plt.legend(loc='best')
     
     plt.savefig(path+'\\PRC.jpg')
-    plt.show()
+    plt.close()
     return
 
-def plot_curve_ROC(precision_df, recal_df, path):
+def plot_curve_ROC(fpr_df, tpr_df, path):
     
     plt.figure(1, figsize=(16,8))
     
-    for name in precision_df.columns:
-        plt.plot(precision_df[name], recal_df[name])
-        plt.hold(True)
+    for name in fpr_df.columns:
+        plt.plot(fpr_df[name], tpr_df[name])
 
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel('FPR')
@@ -121,8 +120,9 @@ def plot_curve_ROC(precision_df, recal_df, path):
     plt.legend(loc='best')
     
     plt.savefig(path+'\\ROC.jpg')
-    plt.show()
+    plt.close()
     return
+
 # directory paths
 
 list_result_dir = glob.glob('*unet*')
@@ -130,19 +130,22 @@ original_mask_dir = glob.glob('OriginalMasks')
 
 mask_dict = return_dict_data('OriginalMasks')
 mask_df = normalize_to_df(mask_dict)
-
+i=1
 for path in list_result_dir:
     prediction_dict = return_dict_data(path)
     prediction_df = normalize_to_df(prediction_dict)
-    
+        
     RIA_df = compute_rand_index_adjusted(mask_df, prediction_df)
     RIA_df.to_csv(path_or_buf=path+'\\RIA_score.csv')
+        
+    f1_score_df = compute_f1_score(mask_df, prediction_df, threshold=0.8)
+    f1_score_df.to_csv(path_or_buf=path+'\\f1_score.csv')
     
-    #f1_score_df = compute_f1_score(mask_df, prediction_df, threshold=0.8)
-    #f1_score_df.to_csv(path_or_buf=path+'\\f1_score.csv')
-
-    #precision_df, recall_df = compute_precision_recal(mask_df, prediction_df, path)
-    #plot_curve_PRC(precision_df, recall_df, path)
-
-    #fpr_df, tpr_df = compute_ROC(mask_df, prediction_df, path)
-    #plot_curve_ROC(fpr_df, tpr_df, path)
+    precision_df, recall_df = compute_precision_recal(mask_df, prediction_df, path)
+    plot_curve_PRC(precision_df, recall_df, path)
+    
+    fpr_df, tpr_df = compute_ROC(mask_df, prediction_df, path)
+    plot_curve_ROC(fpr_df, tpr_df, path)
+    
+    print(str(i*2.43)+' %')
+    i=i+1

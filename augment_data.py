@@ -4,8 +4,8 @@ import os
 dirpath = os.getcwd()
 print(dirpath)
 
-p=Augmentor.Pipeline(dirpath+'\\data\\trainme')
-p.ground_truth(dirpath+'\\data\\labelme')
+p=Augmentor.Pipeline("C:/Users/smocko/unet/data/trainme")
+p.ground_truth("C:/Users/smocko/unet/data/labelme")
 
 
 p.rotate(0.7, 25, 25)
